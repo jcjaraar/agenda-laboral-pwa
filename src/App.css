@@ -36,3 +36,163 @@
     transform: rotate(360deg);
   }
 }
+
+
+/* src/App.css - Añade al final */
+
+/* Botón agregar */
+.btn-agregar {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin: 20px 0;
+  transition: background 0.3s;
+}
+
+.btn-agregar:hover {
+  background: #218838;
+}
+
+/* Estadísticas */
+.estadisticas {
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 15px 0;
+  border: 1px solid #dee2e6;
+}
+
+.estadisticas p {
+  margin: 0;
+  color: #495057;
+  font-weight: 500;
+}
+
+/* Lista de tareas */
+.lista-tareas {
+  max-width: 800px;
+  margin: 20px auto;
+  text-align: left;
+}
+
+.lista-tareas h2 {
+  color: #333;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 8px;
+  margin-bottom: 20px;
+}
+
+.sin-tareas {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 40px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+/* Roadmap */
+.roadmap {
+  margin-top: 40px;
+  padding: 20px;
+  background: #e7f3ff;
+  border-radius: 8px;
+  max-width: 800px;
+  text-align: left;
+}
+
+.roadmap h3 {
+  color: #0056b3;
+  margin-top: 0;
+}
+
+.roadmap ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.roadmap li {
+  padding: 8px 0;
+  border-bottom: 1px dashed #b3d7ff;
+}
+
+.roadmap li:last-child {
+  border-bottom: none;
+}
+
+.roadmap li::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  text-align: center;
+  line-height: 20px;
+  border-radius: 50%;
+}
+
+.roadmap li:has(✅)::before {
+  content: '✅';
+}
+
+.roadmap li:has(⬜)::before {
+  content: '⬜';
+}
+
+/* Spinner de carga */
+.cargando {
+  text-align: center;
+  padding: 50px;
+}
+
+.spinner {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #007bff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Añade esto a App.css para mejorar móvil: */
+@media (max-width: 768px) {
+  .App-header {
+    padding: 10px;
+  }
+  
+  .tarea {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  
+  .tarea-acciones {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .btn-editar, .btn-eliminar {
+    width: 100%;
+  }
+  
+  .btn-agregar {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px; /* Más grande para dedos */
+  }
+}
+
+/* Touch optimization */
+button, input[type="checkbox"] {
+  min-height: 44px;
+  min-width: 44px;
+}
