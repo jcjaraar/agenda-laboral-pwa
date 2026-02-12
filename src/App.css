@@ -37,7 +37,6 @@
   }
 }
 
-
 /* src/App.css - Añade al final */
 
 /* Botón agregar */
@@ -125,7 +124,7 @@
 }
 
 .roadmap li::before {
-  content: '';
+  content: "";
   display: inline-block;
   width: 20px;
   height: 20px;
@@ -136,11 +135,11 @@
 }
 
 .roadmap li:has(✅)::before {
-  content: '✅';
+  content: "✅";
 }
 
 .roadmap li:has(⬜)::before {
-  content: '⬜';
+  content: "⬜";
 }
 
 /* Spinner de carga */
@@ -160,8 +159,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Añade esto a App.css para mejorar móvil: */
@@ -169,21 +172,22 @@
   .App-header {
     padding: 10px;
   }
-  
+
   .tarea {
     padding: 12px;
     margin-bottom: 10px;
   }
-  
+
   .tarea-acciones {
     flex-direction: column;
     gap: 8px;
   }
-  
-  .btn-editar, .btn-eliminar {
+
+  .btn-editar,
+  .btn-eliminar {
     width: 100%;
   }
-  
+
   .btn-agregar {
     width: 100%;
     padding: 12px;
@@ -192,7 +196,8 @@
 }
 
 /* Touch optimization */
-button, input[type="checkbox"] {
+button,
+input[type="checkbox"] {
   min-height: 44px;
   min-width: 44px;
 }

@@ -1,19 +1,19 @@
 // src/index.js - VERSIÓN SUPER SIMPLE
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js');
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js");
   });
 }
 
@@ -21,16 +21,16 @@ if ('serviceWorker' in navigator) {
 // import reportWebVitals from './reportWebVitals';
 // reportWebVitals();
 
-
 // Al final de src/index.js
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(registration => {
-        console.log('✅ Service Worker registrado:', registration);
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then((registration) => {
+        console.log("✅ Service Worker registrado:", registration);
       })
-      .catch(error => {
-        console.log('❌ Error registrando Service Worker:', error);
+      .catch((error) => {
+        console.log("❌ Error registrando Service Worker:", error);
       });
   });
 }
