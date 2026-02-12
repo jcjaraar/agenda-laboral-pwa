@@ -238,10 +238,59 @@ class DatabaseService {
     return true;
   }
 
+  async obtenerTodasTareas() {
+    const db = await this.db;
+    return db.getAll("tareas");
+  }
+
+  async eliminarTarea(id) {
+    const db = await this.db;
+    const tarea = await this.obtenerTareaPorId(id);
+    await db.delete("tareas", id);
+    await this.logAudit("ELIMINAR", "tareas", id, tarea, null);
+    await this.updateEstadisticas();
+    return true;
+  }
+
+  async obtenerTareaPorId(id) {
+    const db = await this.db;
+    return db.get("tareas", id);
+  }
+
+  async actualizarTarea(id, cambios) {
+    const db = await this.db;
+    const tarea = await this.obtenerTareaPorId(id);
+    const oldValue = { ...tarea };
+
+    // Manejar actualizaciones anidadas (ej: 'planificacion.fechaRealizada')
+    const tareaActualizada = { ...tarea };
+
+    Object.keys(cambios).forEach((key) => {
+      if (key.includes(".")) {
+        const [parent, child] = key.split(".");
+        if (!tareaActualizada[parent]) tareaActualizada[parent] = {};
+        tareaActualizada[parent][child] = cambios[key];
+      } else {
+        tareaActualizada[key] = cambios[key];
+      }
+    });
+
+    tareaActualizada.fechaActualizacion = new Date().toISOString();
+
+    await db.put("tareas", tareaActualizada);
+    await this.logAudit("ACTUALIZAR", "tareas", id, oldValue, tareaActualizada);
+    await this.updateEstadisticas();
+
+    return tareaActualizada;
+  }
+
   // ========== CRUD TAREAS ==========
   async crearTarea(tareaData) {
+    // Asegurar que completada sea boolean
     const tarea = {
       ...tareaData,
+      completada: tareaData.completada || false,
+      estado: tareaData.estado || "pendiente",
       fechaCreacion: new Date().toISOString(),
       fechaActualizacion: new Date().toISOString(),
     };
@@ -255,10 +304,11 @@ class DatabaseService {
   }
 
   async obtenerTareasPorTrabajo(trabajoId, filtros = {}) {
-    const index = this.db.transaction("tareas").store.index("porTrabajoId");
+    const db = await this.db;
+    const index = db.transaction("tareas").store.index("porTrabajoId");
     let tareas = await index.getAll(trabajoId);
 
-    // Aplicar filtros adicionales
+    // Aplicar filtros adicionales (en memoria, no en índice)
     if (filtros.estado) {
       tareas = tareas.filter((t) => t.estado === filtros.estado);
     }
@@ -271,15 +321,99 @@ class DatabaseService {
   }
 
   async obtenerTareasDelDia(fecha) {
-    const index = this.db
-      .transaction("tareas")
-      .store.index("porFechaPlanificada");
-    return index.getAll(fecha);
+    const db = await this.db;
+    // No es índice, es filtro en memoria porque fechaPlanificada está anidada
+    const tareas = await db.getAll("tareas");
+    return tareas.filter((t) => t.planificacion?.fechaPlanificada === fecha);
   }
 
+  // ✅ CORREGIDO - NO usa índice getAll con boolean
   async obtenerTareasPendientes() {
-    const index = this.db.transaction("tareas").store.index("porCompletada");
-    return index.getAll(false);
+    const db = await this.db;
+    const tareas = await db.getAll("tareas");
+    return tareas.filter((t) => t.completada === false);
+  }
+
+  // ✅ NUEVO MÉTODO ÚTIL
+  async obtenerTareasCompletadas() {
+    const db = await this.db;
+    const tareas = await db.getAll("tareas");
+    return tareas.filter((t) => t.completada === true);
+  }
+
+  // ✅ CORREGIDO - getAll simple
+  async obtenerTodasTareas() {
+    const db = await this.db;
+    return db.getAll("tareas");
+  }
+
+  async obtenerTareaPorId(id) {
+    const db = await this.db;
+    return db.get("tareas", id);
+  }
+
+  async actualizarTarea(id, cambios) {
+    const db = await this.db;
+    const tarea = await this.obtenerTareaPorId(id);
+    const oldValue = { ...tarea };
+
+    // Manejar actualizaciones anidadas
+    const tareaActualizada = { ...tarea };
+
+    Object.keys(cambios).forEach((key) => {
+      if (key.includes(".")) {
+        const [parent, child] = key.split(".");
+        if (!tareaActualizada[parent]) tareaActualizada[parent] = {};
+        tareaActualizada[parent][child] = cambios[key];
+      } else {
+        tareaActualizada[key] = cambios[key];
+      }
+    });
+
+    tareaActualizada.fechaActualizacion = new Date().toISOString();
+
+    await db.put("tareas", tareaActualizada);
+    await this.logAudit("ACTUALIZAR", "tareas", id, oldValue, tareaActualizada);
+    await this.updateEstadisticas();
+
+    return tareaActualizada;
+  }
+
+  async eliminarTarea(id) {
+    const db = await this.db;
+    const tarea = await this.obtenerTareaPorId(id);
+    await db.delete("tareas", id);
+    await this.logAudit("ELIMINAR", "tareas", id, tarea, null);
+    await this.updateEstadisticas();
+    return true;
+  }
+
+  // ========== UPDATE ESTADÍSTICAS CORREGIDO ==========
+  async updateEstadisticas() {
+    const db = await this.db;
+    const hoy = format(new Date(), "yyyy-MM-dd");
+
+    const tareas = await db.getAll("tareas");
+    const tareasPendientes = tareas.filter((t) => t.completada === false);
+    const tareasHoy = tareas.filter(
+      (t) => t.planificacion?.fechaPlanificada === hoy,
+    );
+
+    const estadisticas = {
+      fecha: hoy,
+      tipo: "diario",
+      trabajosActivos: (await this.obtenerTodosTrabajos({ estado: "activo" }))
+        .length,
+      trabajosTotal: (await db.getAll("trabajos")).length,
+      tareasPendientes: tareasPendientes.length,
+      tareasTotal: tareas.length,
+      tareasCompletadasHoy: tareasHoy.filter((t) => t.completada === true)
+        .length,
+      ingresosEstimadosHoy: await this.calcularIngresosHoy(),
+      timestamp: new Date().toISOString(),
+    };
+
+    await db.add("estadisticas", estadisticas);
   }
 
   // ========== BACKUP SYSTEM ==========
@@ -511,7 +645,8 @@ class DatabaseService {
   async contarTareasCompletadasHoy() {
     const hoy = format(new Date(), "yyyy-MM-dd");
     const tareasHoy = await this.obtenerTareasDelDia(hoy);
-    return tareasHoy.filter((t) => t.completada).length;
+    // completada es boolean, no necesitas índice aquí
+    return tareasHoy.filter((t) => t.completada === true).length;
   }
 
   async calcularIngresosHoy() {

@@ -4,13 +4,13 @@
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 12px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border-left: 4px solid #ccc;
   transition: all 0.3s ease;
 }
 
 .tarea:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
 }
 
@@ -110,7 +110,8 @@
   border-top: 1px solid #eee;
 }
 
-.btn-editar, .btn-eliminar {
+.btn-editar,
+.btn-eliminar {
   padding: 6px 12px;
   border: none;
   border-radius: 4px;
@@ -142,17 +143,17 @@
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .tarea-checkbox {
     align-self: flex-start;
     margin-bottom: 8px;
   }
-  
+
   .tarea-metadata {
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .tarea-prioridad {
     align-self: flex-start;
   }
