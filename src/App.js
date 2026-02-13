@@ -41,6 +41,10 @@ function App() {
       // 2. Cargar datos desde IndexedDB
       await cargarDatosDesdeDB();
 
+      // ✅ ACÁ LO PONÉS - Cuando arranca la app, mostrás las tareas
+      //await databaseService.debugQuery("todas");
+      //await databaseService.debugQuery("pendientes");
+
       setDbInitialized(true);
     } catch (error) {
       console.error("❌ Error inicializando app:", error);
@@ -76,88 +80,263 @@ function App() {
   };
 
   // ========== DATOS DE EJEMPLO ==========
+  // ========== DATOS DE PRUEBA COMPLETOS ==========
   const cargarDatosEjemplo = async () => {
-    console.log("📂 Cargando datos de ejemplo...");
+    console.log("📂 Cargando datos de prueba completos...");
 
-    // Trabajo de ejemplo
-    const trabajoEjemplo = {
+    // ===== 1. LIMPIAR DATOS EXISTENTES =====
+    try {
+      await databaseService.limpiarBaseDatos();
+      console.log("🧹 Base de datos limpiada");
+    } catch (error) {
+      console.warn("⚠️ No se pudo limpiar, continuando...");
+    }
+
+    // ===== 2. CREAR 3 TRABAJOS CON DIFERENTES CLIENTES =====
+    const trabajo1 = await databaseService.crearTrabajo({
       nombre: "Desarrollo App Tesis",
-      cliente: "Universidad",
-      descripcion: "Aplicación PWA para gestión de tareas laborales con IA",
+      cliente: "Universidad Nacional",
+      descripcion: "Aplicación PWA con IA y backup automático",
       estado: "activo",
       contacto: {
-        telefono: "123456789",
-        email: "cliente@universidad.edu",
-        whatsapp: "123456789",
+        telefono: "1144445555",
+        email: "tesis@edu.ar",
+        whatsapp: "1144445555",
       },
       ubicacion: {
         direccion: "Av. Siempre Viva 123",
         coordenadas: { lat: -34.6037, lng: -58.3816 },
-        transporte: {
-          colectivos: ["15", "29", "111"],
-          tiempoEstimado: 45,
-        },
+        transporte: { colectivos: ["15", "29", "111"], tiempoEstimado: 45 },
       },
-      costo: {
-        valorHora: 1500,
-        moneda: "ARS",
-      },
-    };
+      costo: { valorHora: 2500, moneda: "ARS" },
+    });
 
-    const trabajoCreado = await databaseService.crearTrabajo(trabajoEjemplo);
-
-    // Tareas de ejemplo
-    const tareasEjemplo = [
-      {
-        trabajoId: trabajoCreado.id,
-        titulo: "Diseñar interfaz principal",
-        descripcion: "Crear wireframes y mockups",
-        planificacion: {
-          fechaPlanificada: new Date().toISOString().split("T")[0],
-          horaPlanificada: "10:00",
-          duracionPlanificada: 120,
-        },
-        prioridad: "alta",
-        estado: "pendiente",
-        completada: false,
+    const trabajo2 = await databaseService.crearTrabajo({
+      nombre: "Mantenimiento Red",
+      cliente: "Clínica Salud Total",
+      descripcion: "Actualización de servidores y backups",
+      estado: "activo",
+      contacto: {
+        telefono: "1155556666",
+        email: "sistemas@clinica.com",
+        whatsapp: "1155556666",
       },
-      {
-        trabajoId: trabajoCreado.id,
-        titulo: "Implementar base de datos",
-        descripcion: "Configurar IndexedDB con backup",
-        planificacion: {
-          fechaPlanificada: new Date().toISOString().split("T")[0],
-          horaPlanificada: "14:00",
-          duracionPlanificada: 180,
-        },
-        prioridad: "alta",
-        estado: "pendiente",
-        completada: false,
+      ubicacion: {
+        direccion: "Av. Corrientes 2345",
+        coordenadas: { lat: -34.6033, lng: -58.3812 },
+        transporte: { colectivos: ["5", "12", "60"], tiempoEstimado: 30 },
       },
-      {
-        trabajoId: trabajoCreado.id,
-        titulo: "Integrar Gemini API",
-        descripcion: "Conectar con IA para procesamiento de voz",
-        planificacion: {
-          fechaPlanificada: new Date(Date.now() + 86400000)
-            .toISOString()
-            .split("T")[0],
-          horaPlanificada: "09:00",
-          duracionPlanificada: 240,
-        },
-        prioridad: "media",
-        estado: "pendiente",
-        completada: false,
+      costo: { valorHora: 3200, moneda: "ARS" },
+    });
+
+    const trabajo3 = await databaseService.crearTrabajo({
+      nombre: "E-commerce",
+      cliente: "Tienda Don Pepe",
+      descripcion: "Tienda online con carrito y pagos",
+      estado: "activo",
+      contacto: {
+        telefono: "1166667777",
+        email: "donpepe@tienda.com",
+        whatsapp: "1166667777",
       },
-    ];
+      ubicacion: {
+        direccion: "Cabildo 3456",
+        coordenadas: { lat: -34.5591, lng: -58.4662 },
+        transporte: { colectivos: ["57", "60", "161"], tiempoEstimado: 50 },
+      },
+      costo: { valorHora: 2800, moneda: "ARS" },
+    });
 
-    for (const tarea of tareasEjemplo) {
-      await databaseService.crearTarea(tarea);
-    }
+    // ===== 3. FECHAS PARA LAS TAREAS =====
+    const hoy = new Date().toISOString().split("T")[0];
+    const manana = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+    const pasado = new Date(Date.now() + 172800000).toISOString().split("T")[0];
+    const dia4 = new Date(Date.now() + 259200000).toISOString().split("T")[0];
+    const dia5 = new Date(Date.now() + 345600000).toISOString().split("T")[0];
+    const dia6 = new Date(Date.now() + 432000000).toISOString().split("T")[0];
+    const dia7 = new Date(Date.now() + 518400000).toISOString().split("T")[0];
 
-    // Recargar datos
-    await cargarDatosDesdeDB();
-    console.log("✅ Datos de ejemplo cargados");
+    // ===== 4. TAREAS PARA HOY (3 tareas, 3 trabajos) =====
+    await databaseService.crearTarea({
+      trabajoId: trabajo1.id,
+      titulo: "Revisión de interfaz",
+      descripcion: "Corregir bugs en componente Tarea",
+      planificacion: {
+        fechaPlanificada: hoy,
+        horaPlanificada: "09:00",
+        duracionPlanificada: 90,
+      },
+      prioridad: "alta",
+      estado: "pendiente",
+      completada: false,
+    });
+
+    await databaseService.crearTarea({
+      trabajoId: trabajo2.id,
+      titulo: "Backup diario",
+      descripcion: "Verificar logs de respaldo",
+      planificacion: {
+        fechaPlanificada: hoy,
+        horaPlanificada: "11:30",
+        duracionPlanificada: 45,
+      },
+      prioridad: "media",
+      estado: "pendiente",
+      completada: false,
+    });
+
+    await databaseService.crearTarea({
+      trabajoId: trabajo3.id,
+      titulo: "Actualizar catálogo",
+      descripcion: "Subir 50 productos nuevos",
+      planificacion: {
+        fechaPlanificada: hoy,
+        horaPlanificada: "14:15",
+        duracionPlanificada: 120,
+      },
+      prioridad: "alta",
+      estado: "pendiente",
+      completada: false,
+    });
+
+    // ===== 5. TAREAS PARA MAÑANA (2 tareas) =====
+    await databaseService.crearTarea({
+      trabajoId: trabajo1.id,
+      titulo: "Testing de componentes",
+      descripcion: "Pruebas unitarias con Jest",
+      planificacion: {
+        fechaPlanificada: manana,
+        horaPlanificada: "10:00",
+        duracionPlanificada: 180,
+      },
+      prioridad: "alta",
+      estado: "pendiente",
+      completada: false,
+    });
+
+    await databaseService.crearTarea({
+      trabajoId: trabajo2.id,
+      titulo: "Reunión con cliente",
+      descripcion: "Presentar avances del mes",
+      planificacion: {
+        fechaPlanificada: manana,
+        horaPlanificada: "15:30",
+        duracionPlanificada: 60,
+      },
+      prioridad: "alta",
+      estado: "pendiente",
+      completada: false,
+    });
+
+    // ===== 6. TAREAS PARA PASADO (1 tarea) =====
+    await databaseService.crearTarea({
+      trabajoId: trabajo3.id,
+      titulo: "Configurar pasarela de pagos",
+      descripcion: "Integrar MercadoPago",
+      planificacion: {
+        fechaPlanificada: pasado,
+        horaPlanificada: "09:45",
+        duracionPlanificada: 240,
+      },
+      prioridad: "alta",
+      estado: "pendiente",
+      completada: false,
+    });
+
+    // ===== 7. DÍA 4 - SIN TAREAS (intencionalmente vacío) =====
+
+    // ===== 8. DÍA 5 - DOS TAREAS DEL MISMO TRABAJO =====
+    await databaseService.crearTarea({
+      trabajoId: trabajo1.id,
+      titulo: "Documentación técnica",
+      descripcion: "Escribir manual de usuario",
+      planificacion: {
+        fechaPlanificada: dia5,
+        horaPlanificada: "10:00",
+        duracionPlanificada: 120,
+      },
+      prioridad: "media",
+      estado: "pendiente",
+      completada: false,
+    });
+
+    await databaseService.crearTarea({
+      trabajoId: trabajo1.id,
+      titulo: "Preparar presentación",
+      descripcion: "Slides para defensa de tesis",
+      planificacion: {
+        fechaPlanificada: dia5,
+        horaPlanificada: "14:00",
+        duracionPlanificada: 90,
+      },
+      prioridad: "alta",
+      estado: "pendiente",
+      completada: false,
+    });
+
+    // ===== 9. DÍA 6 - TAREA COMPLETADA (para probar estado) =====
+    await databaseService.crearTarea({
+      trabajoId: trabajo2.id,
+      titulo: "Mantenimiento preventivo",
+      descripcion: "Limpieza de servidores",
+      planificacion: {
+        fechaPlanificada: dia6,
+        horaPlanificada: "08:30",
+        duracionPlanificada: 120,
+        fechaRealizada: dia6,
+        horaRealizada: "10:30",
+      },
+      prioridad: "media",
+      estado: "realizada_cobrada",
+      completada: true,
+    });
+
+    // ===== 10. DÍA 7 - TAREA CANCELADA =====
+    await databaseService.crearTarea({
+      trabajoId: trabajo3.id,
+      titulo: "Rediseño de logo",
+      descripcion: "Cliente canceló el proyecto",
+      planificacion: {
+        fechaPlanificada: dia7,
+        horaPlanificada: "16:00",
+        duracionPlanificada: 180,
+      },
+      prioridad: "baja",
+      estado: "cancelada",
+      completada: false,
+    });
+
+    // ===== 11. ALGUNAS TAREAS COMPLETADAS EN EL PASADO =====
+    const semanaPasada = new Date(Date.now() - 604800000)
+      .toISOString()
+      .split("T")[0];
+
+    await databaseService.crearTarea({
+      trabajoId: trabajo1.id,
+      titulo: "Configurar entorno",
+      descripcion: "Instalar dependencias y herramientas",
+      planificacion: {
+        fechaPlanificada: semanaPasada,
+        horaPlanificada: "09:00",
+        duracionPlanificada: 120,
+        fechaRealizada: semanaPasada,
+        horaRealizada: "11:00",
+      },
+      prioridad: "alta",
+      estado: "realizada_cobrada",
+      completada: true,
+    });
+
+    console.log("✅ Datos de prueba completos cargados:");
+    console.log(`- ${3} trabajos activos`);
+    console.log(`- Total tareas: 11`);
+    console.log(`  • Hoy: 3 tareas (1 por trabajo)`);
+    console.log(`  • Mañana: 2 tareas`);
+    console.log(`  • +2 días: 1 tarea`);
+    console.log(`  • +4 días: 2 tareas (mismo trabajo)`);
+    console.log(`  • +5 días: 1 tarea completada`);
+    console.log(`  • +6 días: 1 tarea cancelada`);
+    console.log(`  • Semana pasada: 1 tarea completada`);
   };
 
   // ========== CRUD TRABAJOS ==========
@@ -246,6 +425,9 @@ function App() {
 
       const tareaCreada = await databaseService.crearTarea(tareaCompleta);
       console.log("✅ Tarea creada en DB:", tareaCreada);
+
+      // ✅ Y mostramos TODAS las tareas para ver el estado actual
+      //await databaseService.debugQuery("todas");
 
       // ACTUALIZAR ESTADO LOCAL - INMUTABLE
       setTareas((prev) => {

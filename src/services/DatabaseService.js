@@ -772,8 +772,133 @@ class DatabaseService {
       reader.readAsText(file);
     });
   }
-}
 
-// Singleton instance
+
+  // ========== QUERY BUILDER SIMPLE (SQL-like) ==========
+  async query(storeName, filtros = {}) {
+    const db = await this.db;
+    let resultados = await db.getAll(storeName);
+    
+    // WHERE
+    if (filtros.where) {
+      resultados = resultados.filter(item => {
+        return Object.entries(filtros.where).every(([campo, valor]) => 
+          item[campo] === valor
+        );
+      });
+    }
+    
+    // SELECT (campos específicos)
+    if (filtros.select) {
+      resultados = resultados.map(item => {
+        const nuevo = {};
+        filtros.select.forEach(campo => {
+          if (campo.includes('.')) {
+            const [padre, hijo] = campo.split('.');
+            if (item[padre]) nuevo[campo] = item[padre][hijo];
+          } else {
+            nuevo[campo] = item[campo];
+          }
+        });
+        return nuevo;
+      });
+    }
+    
+    // ORDER BY
+    if (filtros.orderBy) {
+      const [campo, direccion = 'asc'] = filtros.orderBy.split(' ');
+      resultados.sort((a, b) => {
+        const valA = a[campo];
+        const valB = b[campo];
+        if (typeof valA === 'string') {
+          return direccion === 'asc' 
+            ? valA.localeCompare(valB) 
+            : valB.localeCompare(valA);
+        }
+        return direccion === 'asc' ? valA - valB : valB - valA;
+      });
+    }
+    
+    // LIMIT
+    if (filtros.limit) {
+      resultados = resultados.slice(0, filtros.limit);
+    }
+    
+    return resultados;
+  }
+
+  // ========== DEBUG QUERY (PARA PROGRAMADORES DE LA VIEJA ESCUELA) ==========
+  async debugQuery(consulta = "todas") {
+    console.log(`🔍 Ejecutando consulta: ${consulta}`);
+    
+    const resultados = {
+      todasTareas: await this.obtenerTodasTareas(),
+      trabajos: await this.obtenerTodosTrabajos(),
+      tareasPendientes: await this.obtenerTareasPendientes(),
+      tareasHoy: await this.obtenerTareasDelDia(format(new Date(), "yyyy-MM-dd")),
+    };
+
+    switch(consulta) {
+      case "todas":
+        console.table(resultados.todasTareas.map(({id, titulo, prioridad, estado}) => ({id, titulo, prioridad, estado})));
+        break;
+      case "pendientes":
+        console.table(resultados.tareasPendientes.map(({id, titulo, prioridad}) => ({id, titulo, prioridad})));
+        break;
+      case "hoy":
+        console.table(resultados.tareasHoy.map(({id, titulo, planificacion}) => ({
+          id, 
+          titulo, 
+          hora: planificacion?.horaPlanificada
+        })));
+        break;
+      case "trabajos":
+        console.table(resultados.trabajos.map(({id, nombre, cliente, estado}) => ({id, nombre, cliente, estado})));
+        break;
+      default:
+        console.log("Consultas disponibles: 'todas', 'pendientes', 'hoy', 'trabajos'");
+    }
+    
+    return resultados;
+  }
+
+  // ========== GESTIÓN DE COLORES POR TRABAJO ==========
+  /**
+   * Devuelve un color único y consistente para cada trabajo
+   * @param {number} trabajoId - ID del trabajo
+   * @returns {string} Código de color hexadecimal
+   */
+  async obtenerColorTrabajo(trabajoId) {
+    const colores = [
+      '#4285F4', // Azul Google
+      '#EA4335', // Rojo
+      '#34A853', // Verde
+      '#FBBC05', // Amarillo
+      '#FF6D00', // Naranja
+      '#8E24AA', // Púrpura
+      '#00ACC1', // Cian
+      '#D81B60', // Rosa
+      '#5E35B1', // Índigo
+      '#F4511E', // Naranja oscuro
+      '#039BE5', // Azul claro
+      '#C0CA33', // Lima
+      '#7B1FA2', // Violeta
+      '#E67E22', // Naranja quemado
+      '#1E88E5', // Azul brillante
+      '#E53935', // Rojo brillante
+      '#43A047', // Verde bosque
+      '#FDD835', // Amarillo sol
+      '#6D4C41', // Marrón
+      '#546E7A', // Gris azulado
+    ];
+    
+    // Usar el ID como semilla para siempre obtener el mismo color
+    const indice = (trabajoId - 1) % colores.length;
+    return colores[indice];
+  }
+
+} // ✅ FIN DE LA CLASE DatabaseService (IMPORTANTE: UNA SOLA LLAVE DE CIERRE)
+
+// ========== SINGLETON INSTANCE ==========
 const databaseService = new DatabaseService();
 export default databaseService;
